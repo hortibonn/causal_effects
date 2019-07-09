@@ -2,6 +2,7 @@
 #Tsamardinos, Ioannis, Laura E. Brown, and Constantin F. Aliferis. “The max-min hill-climbing Bayesian network structure learning algorithm.” Machine learning 65.1 (2006): 31-78.
 
 library(bnlearn)
+
 data(coronary)
 
 #create the network ####
