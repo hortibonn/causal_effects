@@ -1,4 +1,4 @@
-#Using Jude Pearl's do-Calculus in R
+#Using Judea Pearl's do-Calculus in R
 #https://cran.r-project.org/web/packages/causaleffect/vignettes/causaleffect.pdf
 #https://cran.r-project.org/web/packages/causaleffect/causaleffect.pdf
 
@@ -9,19 +9,20 @@ library(igraph)
 g <- graph.formula(Temp -+ chill)
 plot(g)
 
-g <- graph.formula(Temp +- chill) #reverse arow
+g <- graph.formula(Temp +- chill) #reverse arrow
 plot(g)
 
-
-g <- graph.formula(Temp -+ test, test -+ Temp, team -+ Temp, test -+ team)
+#more complex model diagram
+g <- graph.formula(Temp -+ chill, chill -+ Temp, light -+ Temp, chill -+ light)
 plot(g)
 
 g <- set.edge.attribute(graph = g, name = "description", index = 1:2, value = "U")
 plot(g)
 
-# simplify = FALSE to allow multiple edges
-f <- graph.formula(W -+ Z, Z -+ X, X -+ Y, W -+ Y, # Observed edges
-                   W -+ Y, Y -+ W, Z -+ Y, Y -+ Z, Z -+ X, X -+ Z, simplify = FALSE)
+#even more complex model diagram
+# simplify = FALSE to allow for multiple edges
+f <- graph.formula(chill -+ heat, heat -+ dormancy, dormancy -+ variety, chill -+ variety, # Observed edges
+                   chill -+ variety, variety -+ chill, heat -+ variety, variety -+ heat, heat -+ dormancy, dormancy -+ heat, simplify = FALSE)
 plot(f)
 
 #using igraph####
