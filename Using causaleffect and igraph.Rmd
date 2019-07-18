@@ -1,0 +1,50 @@
+---
+title: "Using causaleffect and igraph"
+author: "Cory Whitney"
+date: "'r Sys.Dat()"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(causaleffect)
+library(igraph)
+```
+
+## Using igraph
+
+Make a causal map with igraph. For example the notation X -+ Z identifies and draws a directed edge (a causal arrow) from X to Z. These can be words or phrases but this does not look very good yet and we probably need to do a bit of work learning and 'hacking' igraph if we want these to be very verbose text boxes.
+
+```{r fig1}
+fig1 <- graph.formula(W -+ X, W -+ Z, X -+ Z, Z -+ Y, X -+ Y, Y -+ X, simplify = FALSE)
+
+plot(fig1)
+```
+
+```{r fig1 ammend}
+fig1_ammend <- set.edge.attribute(graph = fig1, name = "description", index = c(5,6), value = "U")
+
+plot(fig1_ammend)
+```
+
+## Using causaleffect
+
+Get a mathmatical expression for the 'interventional distribution' (do-Calculus) using the causal.effect function.
+
+```{r ce1}
+ce1 <- causal.effect(y = "Y", x = "X", z = NULL, G = fig1_ammend, expr = TRUE)
+
+ce1
+```
+
+The result of this function is radable in Latex. We can replace the double slash '\\' with a single '\' so that it is also readable in Rmarkdown when wrapped in '$' symbols in R markdown results in a LateX formula like this: 
+
+$\sum_{W,Z}\left(\sum_{X}P(Y|W,X,Z)P(X|W)\right)P(Z|W,X)P(W)$
+
+Or we can avoid that manual work and use the 'Concatenate and Print' `cat()` function. 
+
+```{r cat ce1}
+cat(ce1)
+```
+$\sum_{W,Z}\left(\sum_{X}P(Y|W,X,Z)P(X|W)\right)P(Z|W,X)P(W)$
+
