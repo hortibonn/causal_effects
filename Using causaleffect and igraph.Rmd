@@ -21,6 +21,8 @@ fig1 <- graph.formula(W -+ X, W -+ Z, X -+ Z, Z -+ Y, X -+ Y, Y -+ X, simplify =
 plot(fig1)
 ```
 
+The fifth and sixth arrow of the "graph.formula" (connecting X and Y) are bidirected. We therefore have to add the following "set.edge.attribute" command:
+
 ```{r fig1 ammend}
 fig1_ammend <- set.edge.attribute(graph = fig1, name = "description", index = c(5,6), value = "U")
 
@@ -37,7 +39,7 @@ ce1 <- causal.effect(y = "Y", x = "X", z = NULL, G = fig1_ammend, expr = TRUE)
 ce1
 ```
 
-The result of this function is radable in Latex. We can replace the double slash '\\' with a single '\' so that it is also readable in Rmarkdown when wrapped in '$' symbols in R markdown results in a LateX formula like this: 
+The result of this function is readable in Latex. We can replace the double slash '\\' with a single '\' so that it is also readable in Rmarkdown when wrapped in '$' symbols in R markdown results in a LateX formula look like this: 
 
 $\sum_{W,Z}\left(\sum_{X}P(Y|W,X,Z)P(X|W)\right)P(Z|W,X)P(W)$
 
