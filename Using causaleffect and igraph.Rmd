@@ -1,8 +1,13 @@
 ---
-title: "Using causaleffect and igraph"
+title: "Generating and calculating causal models"
 author: "Cory Whitney"
-date: "'r Sys.Dat()"
-output: html_document
+date: "`r Sys.Date()`"
+output: 
+ html_document:
+      toc: true
+      toc_float: true
+      toc_collapsed: false
+bibliography: references/Causal_refs.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -11,42 +16,83 @@ library(causaleffect)
 library(igraph)
 ```
 
-## Using igraph
+# Causal maps
 
-Make a causal map with igraph. For example the notation X -+ Z identifies and draws a directed edge (a causal arrow) from X to Z. These can be words or phrases but this does not look very good yet and we probably need to do a bit of work learning and 'hacking' igraph if we want these to be very verbose text boxes.
+Make a causal map in `igraph` [@igraph]. For example the notation X -+ Z identifies and draws a directed edge (a causal arrow) from X to Z. These can be words or phrases but this does not look very good yet and we probably need to do a bit of work learning and 'hacking' igraph if we want these to be very verbose text boxes.
 
-```{r fig1}
-fig1 <- graph.formula(W -+ X, W -+ Z, X -+ Z, Z -+ Y, X -+ Y, Y -+ X, simplify = FALSE)
+```{r test_fig}
+test_fig <- graph.formula(W -+ X, W -+ Z, X -+ Z, Z -+ Y, X -+ Y, Y -+ X, simplify = FALSE)
 
-plot(fig1)
+plot(test_fig)
 ```
 
 The fifth and sixth arrow of the "graph.formula" (connecting X and Y) are bidirected. We therefore have to add the following "set.edge.attribute" command:
 
 ```{r fig1 ammend}
-fig1_ammend <- set.edge.attribute(graph = fig1, name = "description", index = c(5,6), value = "U")
+test_fig_ammend <- set.edge.attribute(graph = test_fig, name = "description", index = c(5,6), value = "U")
 
-plot(fig1_ammend)
+plot(test_fig_ammend)
 ```
 
-## Using causaleffect
+# Mathematical expressions
 
-Get a mathmatical expression for the 'interventional distribution' (do-Calculus) using the causal.effect function.
+Get a mathematical expression for the 'interventional distribution' (do-Calculus) using the `causal.effect` function from the causaleffect library [@tikkaIdentifyingCausalEffects2017].
 
 ```{r ce1}
-ce1 <- causal.effect(y = "Y", x = "X", z = NULL, G = fig1_ammend, expr = TRUE)
+ce_formula <- causal.effect(y = "Y", x = "X", z = NULL, G = test_fig_ammend, expr = TRUE)
 
-ce1
+ce_formula
 ```
 
-The result of this function is readable in Latex. We can replace the double slash '\\' with a single '\' so that it is also readable in Rmarkdown when wrapped in '$' symbols in R markdown results in a LateX formula look like this: 
-
-$\sum_{W,Z}\left(\sum_{X}P(Y|W,X,Z)P(X|W)\right)P(Z|W,X)P(W)$
+The result of this function is readable in Latex. We can replace the double slash '\\' with a single '\' so that it is also readable in Rmarkdown.
 
 Or we can avoid that manual work and use the 'Concatenate and Print' `cat()` function. 
 
 ```{r cat ce1}
+cat(ce_formula)
+```
+
+The results can be added to Rmd files when wrapped in '$' symbols in R markdown. This results in a LateX formula looks like this: 
+
+$\sum_{W,Z}\left(\sum_{X}P(Y|W,X,Z)P(X|W)\right)P(Z|W,X)P(W)$
+
+# Nutrition example
+
+We generate a logical causal impact pathway for an intervention to planting trees for better nutrition [c.f. @whitneyIntegrationFruitTrees2018]. 
+
+```{r message=FALSE, warning=FALSE}
+#decision impact pathway
+
+nutrition_decision <- graph.formula(PT -+  FY, #plant_trees -+ fruit_yield, 
+                                    PT -+  C, #plant_trees -+ costs,
+                                    FY -+  EF, #fruit_yield -+ eat_fruit,
+                                    NK -+  EF, #nutrition_knowledge -+ eat_fruit,
+                                    FY -+  S, #fruit_yield -+ sales,
+                                    EF -+  N, #eat_fruit -+ nutrition,
+                                    C -+  I, #costs -+ income,
+                                    S -+  I, #sales -+ income,
+                                    I -+  N, #income -+ nutrition,
+                                    NN -+  N, #nutrition_needs -+ nutrition,
+                   simplify = FALSE)
+
+plot(nutrition_decision)
+
+```
+
+Use the `igraph` model to get the formula for the causal effect of the nutrition intervention to plant trees `PT` on nutrition outcomes `N`. 
+
+```{r get_nutrition_formula, message=FALSE, warning=FALSE}
+ce1 <- causal.effect(y = "N", x = "PT", z = NULL, G = nutrition_decision, expr = TRUE)
+```
+
+Concatenate and print the formula output from the `causal.effect` output with `cat` from base R. 
+
+```{r print_nutrition_formula, message=FALSE, warning=FALSE}
 cat(ce1)
 ```
-$\sum_{W,Z}\left(\sum_{X}P(Y|W,X,Z)P(X|W)\right)P(Z|W,X)P(W)$
+
+$\sum_{NK,NN,FY,EF,S,I}P(N|PT,NK,NN,FY,EF,S,I)P(I|PT,FY,S)P(S|PT,FY)P(EF|PT,NK,FY)P(FY|PT)P(NN)P(NK)$
+
+# References
+
 
