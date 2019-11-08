@@ -158,7 +158,7 @@ fittedbn <- bn.fit(nutrition_graph, data = nutrition_decision_data)
 
 Now we can infer from the BN. We ask for the chance that a farmer with high nutrition knowledge plants and has planted trees will have sufficient nutrition.
 
-```{r query_1, results='hide'}
+```{r query_1, message=TRUE, warning=FALSE}
 cpquery(fittedbn, event = (N=="Sufficient"), 
         evidence = ( PT=="Yes" & NK=="High" ) )
 ```
