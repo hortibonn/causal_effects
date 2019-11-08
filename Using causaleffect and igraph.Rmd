@@ -12,6 +12,7 @@ bibliography: references/Causal_refs.bib
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(bnlearn)
 library(causaleffect)
 library(igraph)
 ```
@@ -88,6 +89,88 @@ cat(nutrition_formula)
 ```
 
 $\sum_{NK,NN,FY,EF,S,I}P(N|PT,NK,NN,FY,EF,S,I)P(I|PT,FY,S)P(S|PT,FY)P(EF|PT,NK,FY)P(FY|PT)P(NN)P(NK)$
+
+
+Use the `bnlearn` library to assess the `nutrition_decision_data` model. The first step is to create an empty graph with as a 'bn' object.More examples of this process are given in the [bnlearn blog](http://www.bnlearn.com/examples/dag/).
+
+```{r empty_bn}
+nutrition_graph = bnlearn::empty.graph(c("PT", "FY", #plant_trees, fruit_yield, 
+                                         "C", "EF",#costs, eat_fruit,
+                                         "NK", "S", #nutrition_knowledge, sales, 
+                                         "N", "I", #nutrition, income,
+                                         "NN"), #nutrition_needs
+                                       num = 1)
+```
+
+Create a matrix of edges (arrows) for the BN. 
+
+```{r nutrition_edges_matrix}
+nutrition_edges = matrix(c("PT", "FY", #plant_trees -+ fruit_yield, 
+                           "PT", "C", #plant_trees -+ costs,
+                           "FY", "EF",#fruit_yield -+ eat_fruit,
+                           "NK", "EF", #nutrition_knowledge -+ eat_fruit,
+                           "FY", "S", #fruit_yield -+ sales,
+                           "EF", "N",#eat_fruit -+ nutrition,
+                           "C", "I", #costs -+ income,
+                           "S", "I", #sales -+ income,
+                           "I", "N",#income -+ nutrition,
+                           "NN", "N"),#nutrition_needs -+ nutrition,
+                         ncol = 2, byrow = TRUE,
+                         dimnames = list(NULL, c("from", "to")))
+ nutrition_edges
+```
+
+Add edges to the BN and plot the resulting model. 
+
+```{r create_arcs} 
+ bnlearn::arcs(nutrition_graph) = nutrition_edges
+ 
+ plot(nutrition_graph)
+```
+
+Test that the graph is acyclic using the `bnlearn` `acyclic` function. 
+
+```{r}
+ acyclic(nutrition_graph)
+```
+
+To test this model we can generate some random data. 
+
+```{r create_conservation_decision_data}
+nutrition_decision_data <- data.frame(
+            PT = sample(c("No","Yes"), 50, replace = TRUE),#plant_trees
+            C = sample(c("Low", "Affordable", "High"), 50, replace = TRUE),#costs
+            FY = sample(c("Low","High"), 50, replace = TRUE),#fruit_yield
+            EF = sample(c("No","Yes"), 50, replace = TRUE),#eat_fruit
+            NK = sample(c("Low","High"), 50, replace = TRUE),#nutrition_knowledge
+            S = sample(c("No","Yes"), 50, replace = TRUE),#sales
+            N = sample(c("Insufficient", "Moderate", "Sufficient"), 50, replace = TRUE),#nutrition
+            I = sample(c("Low", "Sufficient", "High"), 50, replace = TRUE),#income
+            NN  = sample(c("Low","High"), 50, replace = TRUE))#nutrition_needs
+```
+
+Create a fitted BN with the `bn.fit` function from `bnlearn`.
+
+```{r}
+#bn.fit runs the ensemble EM algorithm to learn CPT
+fittedbn <- bn.fit(nutrition_graph, data = nutrition_decision_data)
+```
+
+Now we can infer from the BN. We ask for the chance that a farmer with high nutrition knowledge plants and has planted trees will have sufficient nutrition.
+
+```{r query_1, results='hide'}
+cpquery(fittedbn, event = (N=="Sufficient"), 
+        evidence = ( PT=="Yes" & NK=="High" ) )
+```
+
+We then ask for the chance that a farmer with low nutrition knowledge plants and has planted trees will have sufficient nutrition.
+
+```{r query_2, message=TRUE, warning=FALSE}
+cpquery(fittedbn, event = (N=="Sufficient"), 
+        evidence = ( PT=="No" & NK=="Low" ) )
+```
+
+Because the data is randomly generated with the `sample` function we do not get a very sensible response at the moment. The next step is to build the conditional probability tables that are in teh backgroud of the BN. We can do this with the built in features of the `bnlearn` package or use the `make_CPT` function of the `decisionSupport` package.
 
 # References
 
