@@ -79,16 +79,12 @@ plot(nutrition_decision)
 
 ```
 
-Use the `igraph` model to get the formula for the causal effect of the nutrition intervention to plant trees `PT` on nutrition outcomes `N`. 
+Use the `igraph` model to get the formula for the causal effect of the nutrition intervention to plant trees `PT` on nutrition outcomes `N`. Concatenate and print the formula output from the `causal.effect` output with `cat` from base R. 
 
-```{r get_nutrition_formula, message=FALSE, warning=FALSE}
-ce1 <- causal.effect(y = "N", x = "PT", z = NULL, G = nutrition_decision, expr = TRUE)
-```
+```{r get_nutrition_formula, message=FALSE, warning=FALSE, results='hide'}
+nutrition_formula <- causal.effect(y = "N", x = "PT", z = NULL, G = nutrition_decision, expr = TRUE)
 
-Concatenate and print the formula output from the `causal.effect` output with `cat` from base R. 
-
-```{r print_nutrition_formula, message=FALSE, warning=FALSE}
-cat(ce1)
+cat(nutrition_formula)
 ```
 
 $\sum_{NK,NN,FY,EF,S,I}P(N|PT,NK,NN,FY,EF,S,I)P(I|PT,FY,S)P(S|PT,FY)P(EF|PT,NK,FY)P(FY|PT)P(NN)P(NK)$
