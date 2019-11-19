@@ -77,7 +77,6 @@ nutrition_decision <- graph.formula(PT -+  FY, #plant_trees -+ fruit_yield,
                    simplify = FALSE)
 
 plot(nutrition_decision)
-
 ```
 
 Use the `igraph` model to get the formula for the causal effect of the nutrition intervention to plant trees `PT` on nutrition outcomes `N`. Concatenate and print the formula output from the `causal.effect` output with `cat` from base R. 
